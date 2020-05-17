@@ -1,10 +1,13 @@
 const wordsTextarea = document.getElementById("words");
-chrome.storage.sync.get(null, function (result) {
-  wordsTextarea.value = Object.keys(result)
-    .sort()
-    .map((k) => `${k}\t${result[k]}`)
-    .join("\n");
-});
+
+function load() {
+  chrome.storage.sync.get(null, function (result) {
+    wordsTextarea.value = Object.keys(result)
+      .sort()
+      .map((k) => `${k}\t${result[k]}`)
+      .join("\n");
+  });
+}
 
 document.getElementById("update").addEventListener("click", () => {
   const confirmed = confirm("Are you sure you want to overwrite all words?");
@@ -17,6 +20,10 @@ document.getElementById("update").addEventListener("click", () => {
         acc[k] = v;
         return acc;
       }, {});
-    console.log(newPayload);
+    chrome.storage.sync.set(newPayload, function () {
+      load();
+    });
   }
 });
+
+load();
