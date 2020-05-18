@@ -49,7 +49,7 @@
   }
 
   function getWords(nodes, callback) {
-    const words = nodes
+    const allWords = nodes
       .map((n) => n.textContent)
       .reduce((acc, t) => {
         let w = t
@@ -58,22 +58,33 @@
           .filter((w) => w);
         return [...acc, ...w];
       }, new Set());
-    chrome.storage.sync.get(Array.from(words), function (result) {
-      callback(result);
+    chrome.storage.sync.get(Array.from(allWords), function (result) {
+      callback(Array.from(allWords), result);
     });
   }
 
+  function addSummary(allWords, knownWords) {
+    let summaryNode = document.getElementById("flash-cardon-summary");
+    if (!summaryNode) {
+      summaryNode = window.document.createElement("span");
+      summaryNode.id = "flash-cardon-summary";
+      window.document.body.appendChild(summaryNode);
+    }
+    summaryNode.textContent = `w: ${knownWords.length}/${allWords.length}`;
+  }
+
   var nodes = textNodesUnder(window.document.body);
-  getWords(nodes, (words) => {
+  getWords(nodes, (allWords, knownWords) => {
     for (let i = 0; i < nodes.length; i++) {
       if (nodes[i]) {
         let text = nodes[i].textContent;
         if (text.trim()) {
-          newChildren = getReplacement(text, words);
+          newChildren = getReplacement(text, knownWords);
           nodes[i].replaceWith(...newChildren);
         }
       }
     }
+    addSummary(allWords, Object.keys(knownWords));
   });
 
   if (!window.flashCardon) {
