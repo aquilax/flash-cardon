@@ -1,24 +1,32 @@
-.PHONY: all copy images clean
+.PHONY: all copy clean
 
 SRC_DIR = ./src
 SRC_IMG = ./assets
 BUILD_DIR = ./build
 EXT_DIR = $(BUILD_DIR)/ext
 BUILD_IMAGES = $(BUILD_DIR)/images
+VERSION := $(shell jq -r .version $(SRC_DIR)/manifest.json)
 
-all: clean copy
-	cd $(EXT_DIR); zip -r ../flash-cardon.zip *; cd ..
+resolutions := 16 19 48 128
+all_ICONS := $(foreach resolution, $(resolutions), $(BUILD_IMAGES)/icon_$(resolution).png)
 
-copy: images
-	mkdir -p $(EXT_DIR)
+all: copy
+	cd $(EXT_DIR); zip -r ../flash-cardon-$(VERSION).zip *; cd ..
+
+copy: $(EXT_DIR) images
 	cp -r $(SRC_DIR)/* $(EXT_DIR)
 	cp -r $(BUILD_IMAGES)/* $(EXT_DIR)
 
-images:
+$(EXT_DIR):
+	mkdir -p $(EXT_DIR)
+
+images: $(BUILD_IMAGES) $(all_ICONS)
+
+$(BUILD_IMAGES):
 	mkdir -p $(BUILD_IMAGES)
-	$(foreach size, 16 19 48 128, \
-		inkscape $(SRC_IMG)/icon.svg -w $(size) -h $(size) --export-png=$(BUILD_IMAGES)/icon_$(size).png ; \
-	)
+
+$(BUILD_IMAGES)/icon_%.png: $(SRC_IMG)/icon.svg
+	inkscape $(SRC_IMG)/icon.svg -w $* -h $* --export-png=$@
 
 clean:
 	rm -rf $(BUILD_DIR)/*
