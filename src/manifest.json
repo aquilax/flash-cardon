@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Flash Cardon",
   "description": "Language learning aid",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "icons": {
     "16": "icon_16.png",
     "19": "icon_19.png",
@@ -16,5 +16,5 @@
     "scripts": ["background.js"],
     "persistent": false
   },
-  "permissions": ["activeTab", "storage", "contextMenus"]
+  "permissions": ["activeTab", "storage", "contextMenus", "unlimitedStorage"]
 }

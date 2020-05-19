@@ -1,7 +1,7 @@
 const wordsTextarea = document.getElementById("words");
 
 function load() {
-  chrome.storage.sync.get(null, function (result) {
+  chrome.storage.local.get(null, function (result) {
     wordsTextarea.value = Object.keys(result)
       .sort()
       .map((k) => `${k}\t${result[k]}`)
@@ -20,7 +20,11 @@ document.getElementById("update").addEventListener("click", () => {
         acc[k] = v;
         return acc;
       }, {});
-    chrome.storage.sync.set(newPayload, function () {
+    chrome.storage.local.set(newPayload, function () {
+      const error = chrome.runtime.lastError;
+      if (error) {
+        alert(error);
+      }
       load();
     });
   }

@@ -58,7 +58,7 @@
           .filter((w) => w);
         return [...acc, ...w];
       }, new Set());
-    chrome.storage.sync.get(Array.from(allWords), function (result) {
+    chrome.storage.local.get(Array.from(allWords), function (result) {
       callback(Array.from(allWords), result);
     });
   }
@@ -100,9 +100,15 @@
         );
 
         if (value) {
-          chrome.storage.sync.set(
+          chrome.storage.local.set(
             { [target.dataset.word]: value.trim() },
             function () {
+              const error = chrome.runtime.lastError;
+              if (error) {
+                alert(error);
+                return;
+              }
+
               Array.from(
                 window.document.querySelectorAll(
                   `[data-word="${target.dataset.word}"]`
