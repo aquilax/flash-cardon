@@ -1,8 +1,13 @@
 ((window) => {
-  const cleaner = new RegExp(/[\.,!\?#\:;\-–0-9"”\*\+]/, "g");
+  const cleaner = new RegExp(/[\.,!\?#\:;–0-9"”\*\+\=]/, "g");
 
   function normalizeWord(word) {
     return word.toLowerCase().replace(cleaner, "").trim();
+  }
+
+  // https://stackoverflow.com/a/21696585
+  function isTextNodeVisible(node) {
+    return node.parentNode.offsetParent !== null;
   }
 
   function textNodesUnder(el) {
@@ -15,7 +20,7 @@
       false
     );
     while ((node = walk.nextNode())) {
-      if (node && node.textContent.trim()) {
+      if (node && isTextNodeVisible(node) && node.textContent.trim()) {
         nodes.push(node);
       }
     }
@@ -48,6 +53,13 @@
     }, []);
   }
 
+  function getFrequency(allWords) {
+    return allWords.reduce((acc, k) => {
+      acc[k] = acc[k] ? acc[k] + 1 : 1;
+      return acc;
+    }, {});
+  }
+
   function getWords(nodes, callback) {
     const allWords = nodes
       .map((n) => n.textContent)
@@ -57,10 +69,27 @@
           .map(normalizeWord)
           .filter((w) => w);
         return [...acc, ...w];
-      }, new Set());
-    chrome.storage.local.get(Array.from(allWords), function (result) {
-      callback(Array.from(allWords), result);
+      }, []);
+    chrome.storage.local.get(Array.from(new Set(allWords)), function (result) {
+      callback(Array.from(allWords), result, getFrequency(allWords));
     });
+  }
+
+  function addFrequency(frequency, knownWords, topN = 10) {
+    const known = Object.keys(knownWords);
+    const sorted = Object.entries(frequency)
+      .filter((e) => known.indexOf(e[0]) === -1)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, topN);
+    let frequencyNode = document.getElementById("flash-cardon-frequency");
+    if (!frequencyNode) {
+      frequencyNode = window.document.createElement("div");
+      frequencyNode.id = "flash-cardon-frequency";
+      window.document.body.appendChild(frequencyNode);
+    }
+    frequencyNode.textContent = sorted
+      .map((p) => `${p[0]} : ${p[1]}`)
+      .join("\n");
   }
 
   function addSummary(allWords, knownWords) {
@@ -74,7 +103,7 @@
   }
 
   var nodes = textNodesUnder(window.document.body);
-  getWords(nodes, (allWords, knownWords) => {
+  getWords(nodes, (allWords, knownWords, frequency) => {
     for (let i = 0; i < nodes.length; i++) {
       if (nodes[i]) {
         let text = nodes[i].textContent;
@@ -84,6 +113,7 @@
         }
       }
     }
+    addFrequency(frequency, knownWords);
     addSummary(allWords, Object.keys(knownWords));
   });
 

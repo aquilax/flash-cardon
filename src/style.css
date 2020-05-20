@@ -9,4 +9,19 @@
 }
 #flash-cardon-summary:hover {
     color: #000;
+    background-color: white;
+}
+#flash-cardon-frequency{
+    white-space: pre;
+    position: fixed;
+    padding: 0 .4em;
+    bottom: 2em;
+    right: 10px;
+    color: #cecece;
+    text-align: right;
+}
+
+#flash-cardon-frequency:hover {
+    color: #000;
+    background-color: white;
 }

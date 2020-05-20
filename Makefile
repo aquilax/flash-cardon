@@ -28,5 +28,11 @@ $(BUILD_IMAGES):
 $(BUILD_IMAGES)/icon_%.png: $(SRC_IMG)/icon.svg
 	inkscape $(SRC_IMG)/icon.svg -w $* -h $* --export-png=$@
 
-clean:
+clean_images:
+	rm -rf $(BUILD_IMAGES)/*
+
+clean_copy:
+	rm -rf $(EXT_DIR)/*
+
+clean: clean_images, clean_copy
 	rm -rf $(BUILD_DIR)/*
