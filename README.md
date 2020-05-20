@@ -6,8 +6,9 @@ Flash Cardon is a browser extension which turns any web page to a learning exper
 
 ## Page in action
 
-![Page in action](assets/screenshot.png)
+![Page in action Chrome](assets/screenshot-chrome.png)
+![Page in action Firefox](assets/screenshot-firefox.png)
 
 ## Export/import vocabulary
 
-![Export/Import page](assets/screenshot2.png)
+![Export/Import page](assets/screenshot-chrome-export.png)
