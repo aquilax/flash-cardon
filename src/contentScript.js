@@ -1,5 +1,5 @@
 ((window) => {
-  const cleaner = new RegExp(/[\.,!\?#\:;–0-9"”\*\+\=]/, "g");
+  const cleaner = new RegExp(/[\.,!\?#\:;–0-9"”\*\+\=\|]/, "g");
 
   function normalizeWord(word) {
     return word.toLowerCase().replace(cleaner, "").trim();
@@ -20,7 +20,7 @@
       false
     );
     while ((node = walk.nextNode())) {
-      if (node && isTextNodeVisible(node) && node.textContent.trim()) {
+      if (node && isTextNodeVisible(node) && normalizeWord(node.textContent)) {
         nodes.push(node);
       }
     }

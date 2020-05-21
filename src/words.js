@@ -9,6 +9,14 @@ function load() {
   });
 }
 
+function getDate() {
+  const today = new Date();
+  return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}-${String(today.getDate()).padStart(2, "0")}`;
+}
+
 document.getElementById("update").addEventListener("click", () => {
   const confirmed = confirm("Are you sure you want to overwrite all words?");
   if (confirmed) {
@@ -28,6 +36,20 @@ document.getElementById("update").addEventListener("click", () => {
       load();
     });
   }
+});
+
+document.getElementById("download").addEventListener("click", (e) => {
+  var element = document.createElement("a");
+  element.setAttribute(
+    "href",
+    "data:text/tab-separated-values;charset=utf-8," +
+      encodeURIComponent(wordsTextarea.value)
+  );
+  element.setAttribute("download", `${getDate()}-flash-cardon-export.tsv`);
+  element.style.display = "none";
+  document.body.appendChild(element);
+  element.click(e);
+  document.body.removeChild(element);
 });
 
 load();
