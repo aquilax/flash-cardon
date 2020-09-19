@@ -3,7 +3,9 @@ const wordsTextarea = document.getElementById("words");
 function formatDate(timestamp) {
   try {
     return new Date(parseInt(timestamp, 10)).toISOString();
-  } catch (e) {}
+  } catch (e) {
+    console.error(timestamp, e);
+  }
   return new Date().toISOString();
 }
 
@@ -16,8 +18,8 @@ function load() {
         [
           item.original,
           item.meaning,
-          formatDate(item.created, 10),
-          formatDate(item.updated, 10),
+          formatDate(item.created),
+          formatDate(item.updated),
         ].join("\t")
       )
       .join("\n");

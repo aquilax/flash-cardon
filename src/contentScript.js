@@ -126,13 +126,14 @@
     ]);
   }
 
-  function updateDocumentWithWord(word) {
+  function updateDocumentWithWord(original, word) {
     Array.from(
-      window.document.querySelectorAll(`[data-word="${word.original}"]`)
+      window.document.querySelectorAll(`[data-word="${original}"]`)
     ).forEach((node) => {
       node.classList.add(CSS_KNOWN);
       node.classList.remove(CSS_UNKNOWN);
       node.dataset.meaning = word.meaning;
+      node.dataset.created = word.created;
       node.title = word.meaning;
     });
   }
@@ -143,7 +144,7 @@
       if (error) {
         return alert(error);
       }
-      updateDocumentWithWord(word.meaning);
+      updateDocumentWithWord(original, word);
     });
   }
 

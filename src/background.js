@@ -22,7 +22,7 @@ chrome.browserAction.onClicked.addListener(function (tab) {
 
 // Migrations
 chrome.runtime.onInstalled.addListener(function (details) {
-  if (details.reason == "update") {
+  if (details.reason === "update") {
     var thisVersion = chrome.runtime.getManifest().version;
     if (["0.0.1", "0.0.2"].includes(details.previousVersion)) {
       // migrate to local storage
@@ -35,6 +35,36 @@ chrome.runtime.onInstalled.addListener(function (details) {
           }
           console.log("Migrated data to local storage");
         });
+      });
+    }
+    if (["1.0.0"].includes(thisVersion)) {
+      // migrate database
+      chrome.storage.local.get(null, function (result) {
+        if (result) {
+          // there is something in the database
+          const firstKey = Object.keys(result).pop();
+          if (typeof result[firstKey] === "string") {
+            // v1 database
+            const newDatabase = Object.entries(result).reduce(
+              (acc, [key, meaning]) => {
+                acc[key] = {
+                  meaning,
+                  created: new Date().getTime(),
+                  updated: new Date().getTime(),
+                };
+                return acc;
+              },
+              {}
+            );
+            chrome.storage.local.set(newDatabase, function () {
+              if (error) {
+                console.log("Error migrating to local storage", error);
+                return;
+              }
+              console.log("Migrated data v2");
+            });
+          }
+        }
       });
     }
   }
