@@ -1,5 +1,20 @@
 ((window) => {
-  const cleaner = new RegExp(/[\.,!\?#\:;–0-9"”\*\+\=\|]/, "g");
+  const CSS_WORD = "flash-cardon-word";
+  const CSS_KNOWN = "known";
+  const CSS_UNKNOWN = "unknown";
+
+  const cleaner = new RegExp(/[\.,!\?#\:;–0-9"”\*\+\=\|•]/, "g");
+
+  const state = ((storage) => {
+    return {
+      set: (keys, callback) => {
+        return storage.set(keys, callback);
+      },
+      get: (query, callback) => {
+        return storage.get(query, callback);
+      },
+    };
+  })(chrome.storage.local);
 
   function normalizeWord(word) {
     return word.toLowerCase().replace(cleaner, "").trim();
@@ -10,7 +25,7 @@
     return node.parentNode.offsetParent !== null;
   }
 
-  function textNodesUnder(el) {
+  function getTextNodesUnder(el) {
     const nodes = [];
     let node;
     const walk = window.document.createTreeWalker(
@@ -31,23 +46,26 @@
     return text.split(" ").reduce((acc, w) => {
       wrd = normalizeWord(w);
       if (wrd) {
-        var span = window.document.createElement("span");
+        let span = window.document.createElement("span");
         span.dataset.word = wrd;
         span.textContent = w;
-        span.classList.add("flash-cardon-word");
+        span.classList.add(CSS_WORD);
         if (words[wrd]) {
-          span.classList.add("known");
-          span.dataset.meaning = words[wrd];
-          span.title = words[wrd];
+          word = words[wrd];
+          span.classList.add(CSS_KNOWN);
+          span.dataset.meaning = word.meaning;
+          span.dataset.created = word.created;
+          span.dataset.updated = word.updated;
+          span.title = word.meaning;
         } else {
-          span.classList.add("unknown");
+          span.classList.add(CSS_UNKNOWN);
         }
         acc.push(span);
       } else if (w) {
-        var nonWord = window.document.createTextNode(w);
+        let nonWord = window.document.createTextNode(w);
         acc.push(nonWord);
       }
-      var space = window.document.createTextNode(" ");
+      let space = window.document.createTextNode(" ");
       acc.push(space);
       return acc;
     }, []);
@@ -62,48 +80,37 @@
 
   function getWords(nodes, callback) {
     const allWords = nodes
-      .map((n) => n.textContent)
+      .map((node) => node.textContent)
       .reduce((acc, t) => {
-        let w = t
+        const w = t
           .split(" ")
           .map(normalizeWord)
           .filter((w) => w);
         return [...acc, ...w];
       }, []);
-    chrome.storage.local.get(Array.from(new Set(allWords)), function (result) {
-      callback(Array.from(allWords), result, getFrequency(allWords));
+    state.get(Array.from(new Set(allWords)), function (result) {
+      callback(nodes, Array.from(allWords), result, getFrequency(allWords));
     });
   }
 
-  function addFrequency(frequency, knownWords, topN = 10) {
+  function addSummary(frequency, knownWords, extraLines = [], topN = 10) {
     const known = Object.keys(knownWords);
     const sorted = Object.entries(frequency)
       .filter((e) => known.indexOf(e[0]) === -1)
       .sort((a, b) => b[1] - a[1])
       .slice(0, topN);
-    let frequencyNode = document.getElementById("flash-cardon-frequency");
-    if (!frequencyNode) {
-      frequencyNode = window.document.createElement("div");
-      frequencyNode.id = "flash-cardon-frequency";
-      window.document.body.appendChild(frequencyNode);
-    }
-    frequencyNode.textContent = sorted
-      .map((p) => `${p[0]} : ${p[1]}`)
-      .join("\n");
-  }
-
-  function addSummary(allWords, knownWords) {
     let summaryNode = document.getElementById("flash-cardon-summary");
     if (!summaryNode) {
-      summaryNode = window.document.createElement("span");
+      summaryNode = window.document.createElement("div");
       summaryNode.id = "flash-cardon-summary";
       window.document.body.appendChild(summaryNode);
     }
-    summaryNode.textContent = `w: ${knownWords.length}/${allWords.length}`;
+    const lines = sorted.map((p) => `${p[0]} : ${p[1]}`);
+    lines.push(...extraLines);
+    summaryNode.textContent = lines.join("\n");
   }
 
-  var nodes = textNodesUnder(window.document.body);
-  getWords(nodes, (allWords, knownWords, frequency) => {
+  function onGetWords(nodes, allWords, knownWords, frequency) {
     for (let i = 0; i < nodes.length; i++) {
       if (nodes[i]) {
         let text = nodes[i].textContent;
@@ -113,47 +120,66 @@
         }
       }
     }
-    addFrequency(frequency, knownWords);
-    addSummary(allWords, Object.keys(knownWords));
-  });
+    addSummary(frequency, knownWords, [
+      "-----------------",
+      `known/total: ${Object.keys(knownWords).length}/${allWords.length}`,
+    ]);
+  }
+
+  function updateDocumentWithWord(word) {
+    Array.from(
+      window.document.querySelectorAll(`[data-word="${word.original}"]`)
+    ).forEach((node) => {
+      node.classList.add(CSS_KNOWN);
+      node.classList.remove(CSS_UNKNOWN);
+      node.dataset.meaning = word.meaning;
+      node.title = word.meaning;
+    });
+  }
+
+  function saveWord(original, word) {
+    state.set({ [original]: word }, function () {
+      const error = chrome.runtime.lastError;
+      if (error) {
+        return alert(error);
+      }
+      updateDocumentWithWord(word.meaning);
+    });
+  }
+
+  function askForMeaning(original, meaning) {
+    return (
+      window.prompt(`What is the meaning of "${original}"`, meaning) || ""
+    ).trim();
+  }
+
+  function getTimestamp() {
+    return new Date().getTime();
+  }
+
+  function onWordDoubleClick(event) {
+    const target = event.target;
+    if (target.classList.contains(CSS_WORD)) {
+      const original = target.dataset.word;
+      const promptMeaning = target.classList.contains(CSS_KNOWN)
+        ? target.dataset.meaning
+        : original;
+      const created = target.classList.contains(CSS_KNOWN)
+        ? parseInt(target.dataset.created, 10)
+        : getTimestamp();
+      const meaning = askForMeaning(original, promptMeaning);
+
+      if (meaning) {
+        saveWord(original, { meaning, created, updated: getTimestamp() });
+      }
+    }
+  }
 
   if (!window.flashCardon) {
-    window.document.addEventListener("dblclick", (ev) => {
-      let target = ev.target;
-      if (target.classList.contains("flash-cardon-word")) {
-        let wrd = target.classList.contains("known")
-          ? target.dataset.meaning
-          : target.dataset.word;
-        const value = window.prompt(
-          `What is the meaning of "${target.dataset.word}"`,
-          wrd
-        );
-
-        if (value) {
-          chrome.storage.local.set(
-            { [target.dataset.word]: value.trim() },
-            function () {
-              const error = chrome.runtime.lastError;
-              if (error) {
-                alert(error);
-                return;
-              }
-
-              Array.from(
-                window.document.querySelectorAll(
-                  `[data-word="${target.dataset.word}"]`
-                )
-              ).map((n) => {
-                n.classList.add("known");
-                n.classList.remove("unknown");
-                n.dataset.meaning = value.trim();
-                n.title = value.trim();
-              });
-            }
-          );
-        }
-      }
-    });
+    // Initialize
     window.flashCardon = true;
+    window.document.addEventListener("dblclick", onWordDoubleClick);
+    const nodes = getTextNodesUnder(window.document.body);
+    getWords(nodes, onGetWords);
   }
 })(window);

@@ -1,27 +1,16 @@
 .flash-cardon-word.unknown {
     background-color: #fff37385;
 }
-#flash-cardon-summary {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    color: #cecece;
-}
-#flash-cardon-summary:hover {
-    color: #000;
-    background-color: white;
-}
-#flash-cardon-frequency{
+#flash-cardon-summary{
     white-space: pre;
     position: fixed;
     padding: 0 .4em;
-    bottom: 2em;
-    right: 10px;
+    bottom: 1em;
+    right: 1em;
     color: #cecece;
     text-align: right;
 }
-
-#flash-cardon-frequency:hover {
+#flash-cardon-summary:hover {
     color: #000;
     background-color: white;
 }
