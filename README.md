@@ -25,7 +25,17 @@ Export/Import/Update Vocabulary
 * [Firefox Addons](https://addons.mozilla.org/en-GB/firefox/addon/flash-cardon/)
 
 ## Changelog:
-0.0.4 - added download button on the manage words page
+
+1.0.1
+- added word review page (only randomized list at the moment)
+
+1.0.0
+- added created and updated fields for each word
+- import from both old and new backups
+- database migration on install
+
+0.0.4
+- added download button on the manage words page
 
 ## Screenshots
 

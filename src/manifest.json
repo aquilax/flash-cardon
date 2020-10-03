@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Flash Cardon",
   "description": "Language learning aid",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "icons": {
     "16": "icon_16.png",
     "19": "icon_19.png",

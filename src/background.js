@@ -1,4 +1,11 @@
 chrome.contextMenus.removeAll();
+
+chrome.contextMenus.create({
+  id: "review-words",
+  title: "Review Words",
+  contexts: ["browser_action"],
+});
+
 chrome.contextMenus.create({
   id: "manage-words",
   title: "Manage words",
@@ -8,6 +15,9 @@ chrome.contextMenus.create({
 chrome.contextMenus.onClicked.addListener(function (info, tab) {
   if (info.menuItemId === "manage-words") {
     chrome.tabs.create({ url: "/words.html" });
+  }
+  if (info.menuItemId === "review-words") {
+    chrome.tabs.create({ url: "/review-words.html" });
   }
 });
 
