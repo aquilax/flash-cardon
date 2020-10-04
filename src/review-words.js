@@ -3,6 +3,8 @@ var currentWordIndex = 0;
 var wordElement = document.getElementById("word");
 var meaningElement = document.getElementById("meaning");
 var summaryElement = document.getElementById("summary");
+var previousElement = document.getElementById("previous");
+var nextElement = document.getElementById("next");
 
 function shuffle(array) {
   var currentIndex = array.length,
@@ -59,29 +61,45 @@ function markAsReviewed(currentWordIndex, callback) {
   });
 }
 
+function getOnEventHandler(updateIndex) {
+  return function (e) {
+    e.preventDefault();
+    markAsReviewed(currentWordIndex, () => {
+      currentWordIndex = updateIndex(currentWordIndex, words.length);
+      return renderCurrentWord();
+    });
+  };
+}
+
+const onNext = getOnEventHandler((currentIndex, length) => {
+  currentIndex -= 1;
+  if (currentIndex < 0) {
+    currentIndex = length - 1;
+  }
+  return currentIndex;
+});
+
+const onPrevious = getOnEventHandler((currentIndex, length) => {
+  currentIndex += 1;
+  if (currentIndex > length - 1) {
+    currentIndex = 0;
+  }
+  return currentIndex;
+});
+
 function onLoadWords(storageResult) {
   words = shuffle(transformWordsToArray(storageResult));
   renderCurrentWord();
   document.addEventListener("keydown", (e) => {
     if (["KeyJ", "ArrowLeft"].includes(e.code)) {
-      markAsReviewed(currentWordIndex, () => {
-        currentWordIndex -= 1;
-        if (currentWordIndex < 0) {
-          currentWordIndex = words.length - 1;
-        }
-        return renderCurrentWord();
-      });
+      onNext(e);
     }
     if (["KeyK", "ArrowRight", "Space"].includes(e.code)) {
-      markAsReviewed(currentWordIndex, () => {
-        currentWordIndex += 1;
-        if (currentWordIndex > words.length - 1) {
-          currentWordIndex = 0;
-        }
-        return renderCurrentWord();
-      });
+      onPrevious(e);
     }
   });
+  previousElement.addEventListener("click", onPrevious);
+  nextElement.addEventListener("click", onNext);
 }
 
 function renderCurrentWord() {
