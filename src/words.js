@@ -20,6 +20,7 @@ function load() {
           item.meaning,
           formatDate(item.created),
           formatDate(item.updated),
+          item.lastReviewed ? formatDate(item.lastReviewed) : "",
         ].join("\t")
       )
       .join("\n");
@@ -47,11 +48,14 @@ document.getElementById("update").addEventListener("click", () => {
       .reduce((acc, l) => {
         const row = l.split("\t");
         if (row.length > 2) {
-          const [k, meaning, createdDate, updatedDate] = row;
+          const [k, meaning, createdDate, updatedDate, lastReviewedDate] = row;
           acc[k] = {
             meaning,
             created: dateToTimestamp(createdDate),
             updated: dateToTimestamp(updatedDate),
+            lastReviewed: lastReviewedDate
+              ? dateToTimestamp(lastReviewedDate)
+              : undefined,
           };
         } else {
           // support for v1 format
