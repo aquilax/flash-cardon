@@ -16,8 +16,11 @@ The whole collected vocabulary can be exported as structured text and used to cr
 - Double click on a word to add or update it's meaning.
 - You can also see some statistics in the lower right corner of the page
 
-Export/Import/Update Vocabulary
+### Export/Import/Update Vocabulary
 - Right click on the Flash Cardon icon and select Manage Words from the popup menu.
+
+### Review words
+- Right click on the Flash Cardon icon and select Review Words from the popup menu. You can use the buttons or keyboard shortcuts to navigate the words: (`left-arrow`, `j` for previous word / `right-arrow`, `k`, `space` for next word).
 
 ## Installation
 
@@ -48,5 +51,8 @@ Export/Import/Update Vocabulary
 
 ![Export/Import page](assets/screenshot-chrome-export.png)
 
-## Statistics
+### Statistics
 ![Stats](assets/screenshot-stats.png)
+
+### Review Words
+![Review Words](assets/screenshot-chrome-word-review.png)
